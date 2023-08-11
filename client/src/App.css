@@ -1,0 +1,40 @@
+body, html {
+    margin: 0;
+    overflow: hidden;
+    height: 100%;
+}
+.scroll-container {
+    overflow: auto;
+  }
+
+.ListHeight{
+    height: 90vh;
+}
+
+.overflowPlsWork{
+    overflow-x:auto;
+}
+
+.modal {
+    position: 'absolute';
+    top: '40px';
+    left: '40px';
+    right: '40px';
+    bottom: '40px';
+    border: '1px solid #ccc';
+    background: '#fff';
+    overflow: 'auto';
+    outline: 'none';
+    padding: '20px';
+}
+
+.overlay {
+    display: flex;
+    justify-content: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.7);;
+}
