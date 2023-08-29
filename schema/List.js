@@ -6,6 +6,8 @@ const List = mongoose.model(
     boardId: String,
     name: String,
     position: Number,
+    hideChildren:Boolean,
+    colNum: Number,
 
   })
 );

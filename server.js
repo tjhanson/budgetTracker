@@ -23,7 +23,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 const user = require('./routes/api/users')(app);
 const auth = require('./routes/api/auth')(app);
-const url = "mongodb://127.0.0.1:27017/FuscoeTasks";
+const url = "mongodb://127.0.0.1:27017/budgetApp";
 db.mongoose
   .connect(url, {
     useNewUrlParser: true,

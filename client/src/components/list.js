@@ -3,43 +3,50 @@ import { useSelector,useDispatch  } from 'react-redux'
 import { Droppable } from "react-beautiful-dnd";
 import CustomScroller from 'react-custom-scroller';
 import Task from './task';
-import { Button, Row } from 'react-bootstrap';
+import { Button, Row,Col } from 'react-bootstrap';
 import AddTaskModal from './addTaskModal';
-import { setCards,addNewCard } from '../slices/boardSlice';
-import AddCardInList from './addCardInList';
+import { setCards,addNewCard,updateListData } from '../slices/boardSlice';
+import ListEditModal from './listEditModal';
 
 const grid = 8;
 const getListStyle = isDraggingOver => ({
-    background: isDraggingOver ? "lightblue" : "white",
+    background: isDraggingOver ? "lightblue" : "rgb(241, 242, 244)",
     padding: grid,
     //width: 250,
 
 
 });
 
-function TaskList({el,ind}) {
+function TaskList({el,ind,editMode,moveList}) {
     const dispatch = useDispatch();
-    const [title, setTitle] = useState(el.name);
-    const cards = useSelector((state) => state.userData.cards)
-    const { user } = useSelector(state => state.users);
+    const [title, setTitle] = useState('');
+    const [hideCards, setHideCards] = useState(false);
+    const [amount, setAmount] = useState(0);
+    const userData = useSelector((state) => state.userData)
 
     useEffect(() => {
+        //console.log(el)
+        setTitle(el.name)
+        setHideCards(el.hideChildren)
         dispatch(setCards(el._id))
-        console.log('reloaded')
     },[])
 
+    useEffect(() => {
+        var total = 0
+        userData.cards.filter(card => card.listId == el._id).forEach(item => {
+            total+=parseFloat(item.amount)})
+        setAmount(total)
+    },[userData.cards])
+
     const addCard = (name) =>{
-        var filteredCards = cards.filter(card => card.listId == el._id)
-        var lastPos = filteredCards.length == 0 ? 0 : filteredCards.toSorted((a, b) => (a.position > b.position) ? 1 : -1)[cards.length-1].position
+        var filteredCards = userData.cards.filter(card => card.listId == el._id)
+        var lastPos = filteredCards.length == 0 ? 0 : filteredCards.toSorted((a, b) => (a.position > b.position) ? 1 : -1)[filteredCards.length-1].position
         const newCard = {
             name: name,
             listId: el._id,
             position: lastPos+1024,
-            members: [user.username],
-            description: "",
-            dueDate: ""
+            amount: 0,
           }
-          console.log(newCard)
           dispatch(addNewCard(newCard))
           .then(() => {
             console.log('changed')
@@ -51,35 +58,57 @@ function TaskList({el,ind}) {
         })
     }
 
+    const formatMoney = (a) => {
+        return 'Total: $'+a.toFixed(2).toString()    
+    }
+    const editInfo = (d) => {
+        //do this next
+        dispatch(updateListData(el._id,d))
+        setTitle(d.name)
+        setHideCards(d.hideChildren)
+        if (parseInt(d.colNum) !== el.colNum){
+
+        }
+        
+    }
+
 
 
     return(
-        <div className='bg-secondary rounded border m-2 mt-4 col-md-2'>
-            <Row className='m-0'>
-                <h4 className='text-center col-md-10'>{title}</h4>
-                <AddTaskModal />
-            </Row>
-            
-            <CustomScroller className='ListHeight'>
-                <Droppable droppableId={el._id}>
+        <Droppable  droppableId={el._id}>
                 {(provided, snapshot) => (
                     <div
                     ref={provided.innerRef}
-                    className='m-2 rounded'
+                    className='m-1 p-0 rounded bg-light-gray border border-1 shadow'
                     style={getListStyle(snapshot.isDraggingOver)}
                     {...provided.droppableProps}
                     >
-                        {cards.filter(card => card.listId == el._id).sort((a, b) => (a.position > b.position) ? 1 : -1).map((item, index) => (
-                            <Task key={item._id} item={item} index={index}/>
-                        ))}
-                        
-                    {   provided.placeholder}
+        
+            <Row className={`m-0 ${hideCards || (userData.cards.filter(card => card.listId == el._id).length === 0)? "border-bottom border-dark" : ""}`}>
+                <Col md={1} className='p-0' onClick={() => setHideCards(!hideCards)}><button className={`p-0 border-0 ${hideCards ? "rotate90" : ""}`} >{"▼"}</button></Col>
+                <Col md={10} className='p-0'><h4 className='text-center'>{title}</h4></Col>
+                <Col md={1} className='p-0 d-flex flex-row-reverse'>{editMode ?
+                 <div className='d-flex'>
+                    <ListEditModal data={el} update={editInfo}/>
+                    <Button onClick={() =>moveList('down',el,el.colNum)} className='btn-sm border' variant='info'>^</Button>
+                    <Button onClick={() =>moveList('up',el,el.colNum)} className='btn-sm rotate180 border' variant='info'>^</Button>
+                 </div> 
+                 : <AddTaskModal  addCard={addCard}/>}</Col>
+            </Row>
+            <Row className='m-0'>    
+                {hideCards ? <></> : userData.cards.filter(card => card.listId == el._id).sort((a, b) => (a.position > b.position) ? 1 : -1).map((item, index) => (
+                    <Task key={item._id} item={item} index={index}/>
+                ))}
+            </Row>
+            <Row className='m-0'> 
+                <h4 className='text-center fw-bold'>{formatMoney(amount)}</h4>
+            </Row>
+
+        
+        {   provided.placeholder}
                     </div>
                 )}
                 </Droppable>
-                <AddCardInList addNewCard={addCard} />
-            </CustomScroller>
-        </div>
     )
 }
 

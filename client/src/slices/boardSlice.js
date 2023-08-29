@@ -1,42 +1,52 @@
 import { createSlice } from '@reduxjs/toolkit'
 import boardService from '../services/board.service';
+import { isEqual } from './helperFunctions';
 
 const boardSlice = createSlice({
     name: 'tasks',
     initialState: {
-        boards:[],
+        board:{'name':''},
         lists:[],
         cards:[],
-        changeMade: false,
+        Overview: '',
     },
     reducers:{
         setBoardState: (state,{payload}) => {
-            state.boards = payload
+            state.board = payload
             state.cards = []
         },
         setListsState: (state,{payload}) => {
             state.lists = payload
         },
         addToCardsState: (state,{payload}) => {
-            console.log(payload)
             state.cards = [...state.cards,...payload]
         },
+        addToListsState: (state,{payload}) => {
+            state.lists = [...state.lists,...payload]
+        },
         updateCardPosition: (state,{payload}) => {
-            console.log(payload)
             state.cards = state.cards.map(
                 card => card._id == payload._id ? {...card, position:payload.position} : card
             )
             
         },
         updateCardList: (state,{payload}) => {
-            console.log(payload)
             state.cards = state.cards.map(
-                card => card._id == payload._id ? {...card, listId:payload.listId,position:payload.position} : card
+                card => card._id == payload._id ? {...card, ...payload} : card
             )
-            console.log(state.cards)
         },
-        switchChange: (state) => {
-            state.changeMade = !state.changeMade
+        updateListState: (state,{payload}) => {
+            state.lists = state.lists.map(
+                list => list._id == payload._id ? {...list, ...payload} : list
+            )
+            console.log(state.lists)
+        },
+        removeFromCardList: (state,{payload}) => {
+            state.cards = state.cards.filter(card => card._id !== payload)
+        },
+        setOverview: (state,val) => {
+            console.log(val)
+            state.Overview = val.payload
         }
         
 
@@ -48,15 +58,13 @@ const boardSlice = createSlice({
 
 export default boardSlice.reducer
 
-export const { addToCardsState,updateCardPosition,updateCardList,setBoardState,setListsState,switchChange } = boardSlice.actions
+export const { addToListsState,addToCardsState,updateCardPosition,updateCardList,setBoardState,setListsState,setOverview,removeFromCardList,updateListState } = boardSlice.actions
 
 //export const currentSite = (state) => state.site.currentSite
 
 const calcNewPos = (items,result) => {
     const destPos = result.destination.index
-    console.log(destPos)
-    var itemLen = result.destination.droppableId == result.source.droppableId ? items.length-1 :items.length
-    console.log(itemLen)
+    var itemLen = result.destination.droppableId === result.source.droppableId ? items.length-1 :items.length
     //destination is first in list
     if (items.length == 0){
         return 1024
@@ -66,10 +74,19 @@ const calcNewPos = (items,result) => {
     }
     //destination is last in list
     else if(destPos == itemLen){
-        return items[itemLen-1].position + 1024
+        return items.pop().position + 1024
     }
     //destination is in middle of two cards
-    return (items[destPos].position+items[destPos-1].position)/2
+    if (result.destination.droppableId !== result.source.droppableId){
+        return (items[destPos].position+items[destPos-1].position)/2
+    }
+    else{
+        if(result.destination.index > result.source.index){
+            return (items[destPos].position+items[destPos+1].position)/2
+        }
+        return (items[destPos].position+items[destPos-1].position)/2
+    }
+    
 }
 
 export const reorderCards = (cards,result) => (dispatch) =>{
@@ -78,7 +95,6 @@ export const reorderCards = (cards,result) => (dispatch) =>{
     var updateData = {"position":newPos}
     return boardService.updateCard(result.draggableId,updateData).then(
         (response) => {
-            console.log(response)
         dispatch(updateCardPosition(response));
         return Promise.resolve()
         },
@@ -98,7 +114,6 @@ export const moveCard = (cards,result) => (dispatch) =>{
     }
     return boardService.updateCard(result.draggableId,updateData).then(
         (response) => {
-            console.log(response)
         dispatch(updateCardList(response));
         return Promise.resolve()
         },
@@ -106,6 +121,52 @@ export const moveCard = (cards,result) => (dispatch) =>{
         console.log(error.response)
         return Promise.reject();
         });
+    
+}
+
+export const moveList = (filteredLists,result) => (dispatch) =>{
+    var newPos = calcNewPos(filteredLists,result)
+    var updateData = {
+        "position":newPos,
+        "listId":result.destination.droppableId
+    }
+    return boardService.updateList(result.id,updateData).then(
+        (response) => {
+        dispatch(updateListState(response));
+        return Promise.resolve()
+        },
+        (error) =>{
+        console.log(error.response)
+        return Promise.reject();
+        });
+    
+}
+
+export const updateCardData = (id,updateData) => (dispatch) =>{
+    return boardService.updateCard(id,updateData).then(
+        (response) => {
+        dispatch(updateCardList(response));
+        return Promise.resolve()
+        },
+        (error) =>{
+        console.log(error.response)
+        return Promise.reject();
+        });
+
+    
+}
+
+export const updateListData = (id,updateData) => (dispatch) =>{
+    return boardService.updateList(id,updateData).then(
+        (response) => {
+        dispatch(updateListState(response));
+        return Promise.resolve()
+        },
+        (error) =>{
+        console.log(error.response)
+        return Promise.reject();
+        });
+
     
 }
 
@@ -125,7 +186,6 @@ export const setCards = (listId) =>(dispatch) => {
 const setLists = (boardId) =>(dispatch) => {
     return boardService.getListsById(boardId).then(
         (response) => {
-            console.log(response)
         dispatch(setListsState(response));
         //setLists(response[0]['_id'])
         return Promise.resolve()
@@ -136,10 +196,11 @@ const setLists = (boardId) =>(dispatch) => {
         });
     }
 
-    export const setBoards = (userId) =>(dispatch) => {
-        return boardService.getBoardsById(userId).then(
+    export const setBoards = (name) =>(dispatch) => {
+        console.log(name)
+        return boardService.getBoardsByName(name).then(
             (response) => {
-            dispatch(setBoardState(response));
+            dispatch(setBoardState(response[0]));
             dispatch(setLists(response[0]['_id']))
             return Promise.resolve()
             },
@@ -152,10 +213,8 @@ const setLists = (boardId) =>(dispatch) => {
 
     
 export const updateProjectByID = (id,updateData) =>(dispatch) => {
-    console.log(updateData)
     return boardService.updateProject(id,updateData).then(
         (response) => {
-        console.log(response)
         return Promise.resolve()
         },
         (error) =>{
@@ -165,10 +224,8 @@ export const updateProjectByID = (id,updateData) =>(dispatch) => {
     }
 
     export const addNewCard = (updateData) =>(dispatch) => {
-        console.log(updateData)
         return boardService.addCard(updateData).then(
             (response) => {
-            console.log(response)
             dispatch(addToCardsState([response]))
             return Promise.resolve()
             },
@@ -176,4 +233,29 @@ export const updateProjectByID = (id,updateData) =>(dispatch) => {
             console.log(error.response)
             return Promise.reject();
             });
+        }
+
+    export const addNewList = (updateData) =>(dispatch) => {
+        return boardService.addList(updateData).then(
+            (response) => {
+            dispatch(addToListsState([response]))
+            return Promise.resolve()
+            },
+            (error) =>{
+            console.log(error.response)
+            return Promise.reject();
+            });
+        }
+
+        export const deleteCard = (draggableId) => (dispatch) =>{
+            return boardService.removeCard(draggableId).then(
+                (response) => {
+                dispatch(removeFromCardList(draggableId));
+                return Promise.resolve()
+                },
+                (error) =>{
+                console.log(error.response)
+                return Promise.reject();
+                });
+            
         }

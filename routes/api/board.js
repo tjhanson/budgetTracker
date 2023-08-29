@@ -7,10 +7,10 @@ const Card = require('../../schema/Card');
 
 
 
-//GET Boards by userId
-router.get('/boards/:userId', (req, res) => {
+//GET Boards by name
+router.get('/boards/:name', (req, res) => {
   Board.find({
-    userId: req.params.userId
+    name: req.params.name
   })
   .then(boards => res.json(boards))
 })
@@ -47,6 +47,21 @@ router.put('/cards/:id',(req, res, next) => {
   })
 })
 
+//update list
+router.put('/lists/:id',(req, res, next) => {
+  console.log(req.body)
+  List.findByIdAndUpdate(req.params.id, {
+    $set: req.body
+  }, (error, data) => {
+    if (error) {
+      return next(error);
+      console.log(error)
+    } else {
+      res.json({_id:req.params.id,...req.body})
+    }
+  })
+})
+
 //add card
 router.post('/cards', (req, res) => {
   console.log(req.body)
@@ -55,6 +70,23 @@ router.post('/cards', (req, res) => {
   );
   newTask.save()
   .then(card => res.json(card))
+
+})
+
+//add card
+router.post('/lists', (req, res) => {
+  console.log(req.body)
+  const newTask = new List(
+    req.body
+  );
+  newTask.save()
+  .then(list => res.json(list))
+
+})
+
+router.delete('/cards/:id', (req, res) => {
+  Card.deleteOne({_id: req.params.id})
+  .then(response => res.json(response))
 
 })
 

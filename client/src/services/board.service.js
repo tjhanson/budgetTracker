@@ -15,9 +15,9 @@ const getProjectsByList = (projects) => {
     });
 };
 
-const getBoardsById = (userId) => {
+const getBoardsByName = (name) => {
   return axios
-    .get(API_URL+`/boards/${userId}`,)
+    .get(API_URL+`/boards/${name}`,)
     .then((response) => {
         return response.data;
     });
@@ -45,6 +45,14 @@ const updateCard = (id,updateData) => {
     });
 };
 
+const updateList = (id,updateData) => {
+  return axios
+    .put(API_URL+`/lists/${id}`, updateData, {})
+    .then((response) => {
+        return response.data;
+    });
+};
+
 
 const addCard = (newCard) => {
   return axios
@@ -57,6 +65,25 @@ const addCard = (newCard) => {
     });
 };
 
+const removeCard = (id) => {
+  return axios
+    .delete(API_URL+`/cards/${id}`)
+    .then((response) => {
+        return response.data;
+    });
+};
+
+const addList = (newList) => {
+  return axios
+  .post(API_URL+'/lists', newList, {
+    
+    
+  })
+  .then((response) => {
+      return response.data;
+  });
+}
+
 export default {
-  getCardsById,getListsById,getBoardsById,updateCard,addCard
+  addList,getCardsById,getListsById,getBoardsByName,updateCard,addCard,removeCard,updateList
   };

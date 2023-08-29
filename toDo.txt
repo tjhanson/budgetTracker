@@ -1,7 +1,15 @@
-add move functionality
-add functionality to tasks
-create fake data
-add view changes - table
+import from partners/capital one/discover
+    format names
+    auto remove utilties/payments
+taskbar
+    make collapseable
+    set active tab to be different color
+add default categories for each month
+check card position for too small, <0.1?
+
+add as of date
+total expenses somewhere
 
 
-
+bugs
+    when changing colNum of list, it doesnt refresh

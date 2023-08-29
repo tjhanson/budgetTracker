@@ -7,8 +7,12 @@ body, html {
     overflow: auto;
   }
 
-.ListHeight{
+.containerHeight {
     height: 90vh;
+}
+
+.ListHeight{
+    min-height: 5vh;
 }
 
 .overflowPlsWork{
@@ -37,4 +41,23 @@ body, html {
     right: 0;
     bottom: 0;
     background-color: rgba(0,0,0,0.7);;
+}
+
+.bg-light-gray {
+    background-color: rgb(241, 242, 244);
+    color: black !important;
+}
+
+.rotate90{
+    rotate: -90deg;
+}
+
+.rotate180{
+    rotate: 180deg;
+}
+.cursorText{
+    cursor: text;
+}
+.cursorPointer{
+    cursor: pointer;
 }

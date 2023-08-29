@@ -5,10 +5,8 @@ const Card = mongoose.model(
   new mongoose.Schema({
     listId: String,
     name: String,
-    members: Array,
     position: Number,
-    description:String,
-    dueDate: Date,
+    amount:Number,
 
   })
 );

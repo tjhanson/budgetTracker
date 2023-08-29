@@ -1,7 +1,11 @@
 import React,{Fragment, useState} from 'react';
 import {Draggable } from "react-beautiful-dnd";
 import Window from './window';
+import { useSelector,useDispatch  } from 'react-redux'
+import {Row,Col} from 'react-bootstrap';
 
+import AutoSizeTextArea from './autoSizeTextArea';
+import { updateCardData } from '../slices/boardSlice';
 const grid = 8;
 
 const getItemStyle = (isDragging, draggableStyle) => ({
@@ -9,7 +13,7 @@ const getItemStyle = (isDragging, draggableStyle) => ({
     userSelect: "none",
 
     // change background colour if dragging
-    background: isDragging ? "lightgreen" : "grey",
+    background: isDragging ? "red" : "rgb(241, 242, 244)",
 
     // styles we need to apply on draggables
     ...draggableStyle
@@ -20,21 +24,40 @@ const getItemStyle = (isDragging, draggableStyle) => ({
 
 
 function Task({item,index}) {
+    const dispatch = useDispatch();
     const [editMode, setEditMode] = useState(false);
+    const [editModeAmount, setEditModeAmount] = useState(false);
     const [show, setShow] = useState(false);
 
-    const onOpen = () => {
+    const contentClick = () => {
         setEditMode(true);
-        setShow(true);
+      };
+
+      const contentClickAmount = () => {
+        setEditModeAmount(true);
+      };
+
+    const onSave = (i,t) => {
+        
+        if (t === 'name'){
+            setEditMode(false);
+            if (i !== item.name){
+                dispatch(updateCardData(item._id,{'name':i}))
+                console.log('changedName')
+            }
+        } 
+        else {
+            setEditModeAmount(false);
+            if (i !== item.amount){
+                dispatch(updateCardData(item._id,{'amount':i}))
+                console.log('changedAmount')
+            }
+        }
+        
     };
 
-    const onClose = () => {
-        setEditMode(false);
-        setShow(false);
-    };
 
     return(
-        <div>
         <Draggable
             draggableId={item._id}
             index={index}
@@ -50,24 +73,44 @@ function Task({item,index}) {
                     snapshot.isDragging,
                     provided.draggableProps.style
                     )}
-                    className='m-1 p-1 rounded'
+                    className='m-0'
                 >
-                    <div
-                    onClick={onOpen}
+                    <Row
+                    
                     style={{
                         display: "flex",
-                        justifyContent: "space-around"
+                        justifyContent: "space-around",
+                        background: "white",
                     }}
+                    className='rounded border p-1'
                     >
-                        {item.name}:{item.position}
-                    </div>
+                        <Col md={8} onClick={contentClick} className='p-0'>
+                            <AutoSizeTextArea
+                                onSave={onSave}
+                                updateValue={item.name}
+                                // should i cancel???
+                                onBlur={onSave}
+                                editMode={editMode}
+                                t='name'
+                            ></AutoSizeTextArea>
+                        </Col>
+                        $
+                        <Col onClick={contentClickAmount} className='p-0'>
+                            <AutoSizeTextArea
+                                onSave={onSave}
+                                updateValue={item.amount}
+                                // should i cancel???
+                                onBlur={onSave}
+                                editMode={editModeAmount}
+                                t='amount'
+                            ></AutoSizeTextArea>
+                        </Col>
+                    </Row>
                     </div>
                     
                 
             )}
         </Draggable>
-        <Window item={item} onClose={onClose} show={show} />
-        </div>
     )
 }
 

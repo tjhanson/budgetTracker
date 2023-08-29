@@ -1,12 +1,13 @@
-import React from 'react';
-import { Container,Row,Col} from 'react-bootstrap';
-
+import React, {useEffect, useRef} from 'react';
+import { Container,Row,Col,Stack, Navbar} from 'react-bootstrap';
+import { Navigate } from 'react-router-dom';
+import SiteNavbar from '../components/navbar';
 import TaskSidebar from '../components/sidebar';
 import Board from '../components/board';
+import { useSelector  } from 'react-redux'
+import Overview from '../components/overview';
 
-
-function Home() {
-
+function OverviewPage() {
 
     function calcCurrentYear(){
         var d = new Date()
@@ -23,7 +24,7 @@ function Home() {
                         <TaskSidebar currentYear={calcCurrentYear}/>
                     </Col>
                     <Col md={10}>
-                        <Board />
+                        <Overview />
                     </Col>
                 </Row>
             </Container>
@@ -31,4 +32,4 @@ function Home() {
     )
 }
 
-export default Home;
+export default OverviewPage;
