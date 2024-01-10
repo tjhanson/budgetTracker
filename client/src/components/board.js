@@ -8,6 +8,7 @@ import TaskList from './list';
 import AddNewList from './addNewList';
 import DeleteArea from './deleteTask';
 import BatchImport from './batchImport';
+import { formatMoneyUS } from './formatMoney';
 
 
 
@@ -34,8 +35,9 @@ function Board() {
     useEffect(() => {
         var tempTotals = [0,0,0,0]
         for (let index = 0; index < titleArray.length; index++) {
+
             let colLists = lists.map(
-                li => li._colNum === index ? li._id : null
+                li => li.colNum === index && li.name !=='Income' ? li._id : null
             )
             var total = 0
             userData.cards.filter(card => colLists.includes(card.listId)).forEach(item => {
@@ -119,7 +121,7 @@ function Board() {
         
     }
     const formatMoney = (a) => {
-        return 'Total: $'+a.toFixed(2).toString()    
+        return 'Total: '+formatMoneyUS(a)    
     }
 
 
@@ -151,7 +153,7 @@ function Board() {
                                 <Col md={3} key={idx} className='overflow-auto flex-shrink-1 position-relative border border-dark p-0'>
                                     <div className='position-absolute w-100'>
                                         <h3 className='border-bottom border-dark text-center pb-1'>{name}</h3>
-                                        <h4 className='border-bottom border-dark text-center'>Total:{total[idx]}</h4>
+                                        <h4 className='border-bottom border-dark text-center'>{formatMoney(total[idx])}</h4>
                                     {lists.filter(li => li.colNum === idx).sort((a, b) => (a.position > b.position) ? 1 : -1).map((el, ind) => (
                                         
                                         <TaskList el={el} ind={ind} key={ind} editMode={editBaskets} moveList={moveListPosition}/>

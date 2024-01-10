@@ -61,3 +61,11 @@ body, html {
 .cursorPointer{
     cursor: pointer;
 }
+
+.bg-profit{
+    background-color: rgba(6, 125, 0,0.5) !important;
+}
+
+.bg-loss{
+    background-color: rgba(255, 0, 0, 0.5) !important;
+}

@@ -2,8 +2,11 @@
   "name": "client",
   "version": "0.1.0",
   "private": true,
+  "main": "index.js",
+  "homepage": "./",
   "dependencies": {
     "@reduxjs/toolkit": "^1.9.5",
+    "@silevis/reactgrid": "^4.1.1",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.3.0",
     "@testing-library/user-event": "^13.5.0",
@@ -33,7 +36,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "electron": "electron ."
   },
   "proxy": "http://127.0.0.1:5000",
   "eslintConfig": {
@@ -56,6 +60,7 @@
   },
   "devDependencies": {
     "@redux-devtools/extension": "^3.2.5",
+    "election": "^0.0.0",
     "redux-devtools-extension": "^2.13.9"
   }
 }

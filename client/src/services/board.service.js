@@ -15,9 +15,25 @@ const getProjectsByList = (projects) => {
     });
 };
 
+const getAllBoards = () => {
+  return axios
+    .get(API_URL+`/boards/`,)
+    .then((response) => {
+        return response.data;
+    });
+};
+
 const getBoardsByName = (name) => {
   return axios
     .get(API_URL+`/boards/${name}`,)
+    .then((response) => {
+        return response.data;
+    });
+};
+
+const getBoardsByYear = (year) => {
+  return axios
+    .get(API_URL+`/boards/byYear/${year}`,)
     .then((response) => {
         return response.data;
     });
@@ -48,6 +64,14 @@ const updateCard = (id,updateData) => {
 const updateList = (id,updateData) => {
   return axios
     .put(API_URL+`/lists/${id}`, updateData, {})
+    .then((response) => {
+        return response.data;
+    });
+};
+
+const updateBoard = (id,updateData) => {
+  return axios
+    .put(API_URL+`/boards/${id}`, updateData, {})
     .then((response) => {
         return response.data;
     });
@@ -84,6 +108,18 @@ const addList = (newList) => {
   });
 }
 
+const addBoard = (newBoard) => {
+  console.log(newBoard)
+  return axios
+  .post(API_URL+'/boards', newBoard, {
+    
+    
+  })
+  .then((response) => {
+      return response.data;
+  });
+}
+
 export default {
-  addList,getCardsById,getListsById,getBoardsByName,updateCard,addCard,removeCard,updateList
+  getAllBoards,addBoard,addList,getCardsById,getListsById,getBoardsByName,getBoardsByYear,updateCard,addCard,removeCard,updateList,updateBoard
   };

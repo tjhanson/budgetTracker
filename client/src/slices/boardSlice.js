@@ -8,6 +8,7 @@ const boardSlice = createSlice({
         board:{'name':''},
         lists:[],
         cards:[],
+        projects:[],
         Overview: '',
     },
     reducers:{
@@ -23,6 +24,9 @@ const boardSlice = createSlice({
         },
         addToListsState: (state,{payload}) => {
             state.lists = [...state.lists,...payload]
+        },
+        addToProjectsState: (state,{payload}) => {
+            state.projects = [...state.projects,...payload]
         },
         updateCardPosition: (state,{payload}) => {
             state.cards = state.cards.map(
@@ -58,7 +62,7 @@ const boardSlice = createSlice({
 
 export default boardSlice.reducer
 
-export const { addToListsState,addToCardsState,updateCardPosition,updateCardList,setBoardState,setListsState,setOverview,removeFromCardList,updateListState } = boardSlice.actions
+export const { addToProjectsState,addToListsState,addToCardsState,updateCardPosition,updateCardList,setBoardState,setListsState,setOverview,removeFromCardList,updateListState } = boardSlice.actions
 
 //export const currentSite = (state) => state.site.currentSite
 
@@ -170,6 +174,33 @@ export const updateListData = (id,updateData) => (dispatch) =>{
     
 }
 
+export const updateBoardData = (id,updateData) => (dispatch) =>{
+    return boardService.updateBoard(id,updateData).then(
+        (response) => {
+        return Promise.resolve()
+        },
+        (error) =>{
+        console.log(error.response)
+        return Promise.reject();
+        });
+
+    
+}
+
+export const setProjects = () =>(dispatch) => {
+    return boardService.getBoardsByYear('project').then(
+        (response) => {
+            console.log(response)
+            if (response.length > 0)
+                dispatch(addToProjectsState(response))
+        return Promise.resolve()
+        },
+        (error) =>{
+        console.log(error.response)
+        return Promise.reject();
+        });
+    }
+
 export const setCards = (listId) =>(dispatch) => {
     return boardService.getCardsById(listId).then(
         (response) => {
@@ -187,6 +218,9 @@ const setLists = (boardId) =>(dispatch) => {
     return boardService.getListsById(boardId).then(
         (response) => {
         dispatch(setListsState(response));
+        response.forEach(li => {
+            dispatch(setCards(li._id))
+        });
         //setLists(response[0]['_id'])
         return Promise.resolve()
         },
@@ -197,7 +231,6 @@ const setLists = (boardId) =>(dispatch) => {
     }
 
     export const setBoards = (name) =>(dispatch) => {
-        console.log(name)
         return boardService.getBoardsByName(name).then(
             (response) => {
             dispatch(setBoardState(response[0]));
@@ -246,6 +279,19 @@ export const updateProjectByID = (id,updateData) =>(dispatch) => {
             return Promise.reject();
             });
         }
+
+        export const addNewBoard = (updateData) =>(dispatch) => {
+
+            return boardService.addBoard(updateData).then(
+                (response) => {
+                dispatch(addToProjectsState([response]))
+                return Promise.resolve()
+                },
+                (error) =>{
+                console.log(error.response)
+                return Promise.reject();
+                });
+            }
 
         export const deleteCard = (draggableId) => (dispatch) =>{
             return boardService.removeCard(draggableId).then(

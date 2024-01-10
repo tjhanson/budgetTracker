@@ -35,6 +35,10 @@ const AutoSizeTextArea = ({
     setTextAreaValue(e.target.value);
   };
 
+  function handleFocus() {
+    textAreaRef.current.select();
+  }
+
   const onKeyDown = e => {
     // enter pressed
     if (e.keyCode === 13) {
@@ -58,7 +62,7 @@ const AutoSizeTextArea = ({
       spellCheck="false"
       placeholder={placeholder}
       className={`p-0 pt-1 ${editMode ? "cursorText" : "cursorPointer"}`}
-      
+      onFocus={handleFocus}
     ></TextArea>
   );
 };

@@ -7,6 +7,7 @@ import { Button, Row,Col } from 'react-bootstrap';
 import AddTaskModal from './addTaskModal';
 import { setCards,addNewCard,updateListData } from '../slices/boardSlice';
 import ListEditModal from './listEditModal';
+import { formatMoneyUS } from './formatMoney';
 
 const grid = 8;
 const getListStyle = isDraggingOver => ({
@@ -25,10 +26,10 @@ function TaskList({el,ind,editMode,moveList}) {
     const userData = useSelector((state) => state.userData)
 
     useEffect(() => {
-        //console.log(el)
+        console.log(el)
         setTitle(el.name)
         setHideCards(el.hideChildren)
-        dispatch(setCards(el._id))
+        //dispatch(setCards(el._id))
     },[])
 
     useEffect(() => {
@@ -59,7 +60,7 @@ function TaskList({el,ind,editMode,moveList}) {
     }
 
     const formatMoney = (a) => {
-        return 'Total: $'+a.toFixed(2).toString()    
+        return 'Total: '+formatMoneyUS(a)
     }
     const editInfo = (d) => {
         //do this next

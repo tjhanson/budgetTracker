@@ -5,8 +5,10 @@ import './App.css';
 import Home from './pages/HomePage';
 import Login from './pages/LoginPage';
 import OverviewPage from './pages/OverviewPage';
+import NetWorthPage from './pages/NetWorthPage';
 
 import { setBoards } from './slices/boardSlice';
+
 
 
 function App() {
@@ -23,6 +25,7 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/" element={<Home />} />
       <Route path="/overview" element={<OverviewPage />} />
+      <Route path="/networth" element={<NetWorthPage />} />
     </Routes>
   );
 }

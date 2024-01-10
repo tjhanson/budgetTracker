@@ -1,87 +1,143 @@
 import React, {useState,useEffect} from 'react';
 import { useSelector,useDispatch  } from 'react-redux'
 import { Button, Row,Col, Container, Table } from 'react-bootstrap';
+import { Chart } from "react-google-charts";
 
 import boardService from '../services/board.service';
+import { formatMoneyUS } from './formatMoney';
 
 
 
 function Overview({}) {
     const dispatch = useDispatch();
     const [title, setTitle] = useState('');
+    const [boardData, setBoardData] = useState([]);
+    const [listData, setListData] = useState([]);
+    const [cardData, setCardData] = useState([]);
     const [incomeData, setIncomeData] = useState([]);
     const [expenseData, setExpenseData] = useState([]);
     const [monthDataIncome, setMonthDataIncome] = useState({});
     const [monthDataExpense, setMonthDataExpense] = useState({});
     const userData = useSelector((state) => state.userData)
 
-    var titleArray = ['Monthly','Food','Hobbies','Other']
+    var titleArray = ['Non-Discretionary','Food','Hobbies','Other']
     var months = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
 
     useEffect(() => {
-        console.log(userData)
+        
         setTitle(userData.Overview)
-        calcCategoryData()
+        boardService.getBoardsByYear(userData.Overview).then(
+            (response) => {
+                setBoardData(response)
+            })
+        //getAllData()
+
     },[userData.Overview])
 
-    const calcCategoryData = () => {
-        
-        months.forEach(month => {
-            boardService.getBoardsByName(month+'_2023').then(
-                (response) => {
-                    boardService.getListsById(response[0]._id).then(
-                        (response) => {
-                            if (response.length > 0){
-                                console.log(month)
-                                calcIncome(response.filter(li => li.name === 'Income')[0],month)
-                                calcExpenses(response.filter(li => li.name !== 'Income'),month)
-                            }
-                            
-                            
-                                
-                            ;
-                        })
-                })
-        });
-    }
+    useEffect(() => {
+        if (boardData.length > 0) {
+            calcCategoryData()
+        }
+    },[boardData])
 
-    const calcIncome = (list,month) => {
-        boardService.getCardsById(list._id).then(
-            (response) => {
-                var result = reduceByName(response)
-                var sum = 0
-                console.log(month)
-                result.forEach(i => {
-                    sum+=i.amount
-                })
-                console.log(sum)
-                setIncomeData(reduceByName([...incomeData,...result]))
-                setMonthDataIncome({...monthDataIncome, [month]:sum})
-            })
-    }
-    const calcExpenses = (lists,month) => {
-        var data = {}
+    useEffect(() => {
+        if (listData.length > 0 && cardData.length > 0) {
+            console.log('yeet')
+            setAllData()
+        }
+    },[listData,cardData])
+
+
+
+    const  calcCategoryData = () => {
+        var data = []
         const promises = [];
-        lists.forEach(li => {
-            data[li._id] = {name:li.name,amount:0,colNum:li.colNum}
-            const promise = boardService.getCardsById(li._id).then(
+            boardData.forEach(element => {
+            var month = element.name.split('_')[0]
+            const promise = boardService.getListsById(element._id).then(
                 (response) => {
-                    data[li._id].amount = addCards(response)
+                    if (response.length > 0){
+                        response.forEach(r =>{
+                            data.push({ ...r,'month':month})        
+                        })
+                    }
                 })
-            promises.push(promise)
-        });
+                promises.push(promise)
+            });
 
         Promise.all(promises)
         .then(()=>{
-            var sum = 0
-            Object.values(data).forEach(i => {
-                sum+=i.amount
-            })
-            setExpenseData(reduceByName([...expenseData,...Object.values(data)]))
-            setMonthDataExpense({...monthDataExpense, [month]:sum})
+            setListData(data)
+            getCardData(data)
+        })
+    }
+
+    const getCardData =  (lists) => {
+        var data = []
+        const promises = [];
+            lists.forEach(element => {
+            const promise = boardService.getCardsById(element._id).then(
+                (response) => {
+                    if (response.length > 0){
+                        response.forEach(r =>{
+                            data.push({ ...r,'listId':element._id})        
+                        })              
+                    }
+                })
+                promises.push(promise)
+            });
+
+        Promise.all(promises)
+        .then(()=>{
+            setCardData(data)
             
         })
+    }
+
+    const setAllData = () => {
+        var income = {}
+        var monthIncome = {}
+        var monthExpenses = {}
+        var expenses = []
+        months.forEach(m => {
+            var monthLists = listData.filter(li => li.month === m)
+            
+            var tempIncome = calcIncome(monthLists.filter(li => li.name === "Income")[0])
+            income[m] = tempIncome
+            monthIncome[m] = tempIncome.amount;
+            var temp = calcExpenses(monthLists.filter(li => li.name !== "Income"))
+            monthExpenses[m] = temp.map(e => e.amount).reduce((partialSum, a) => partialSum + a, 0)
+            temp.forEach(e => expenses.push(e))
+        })
+        setMonthDataIncome(monthIncome)
+        setMonthDataExpense(monthExpenses)
+        setIncomeData(reduceByName(Object.values(income)))
+        setExpenseData(reduceByName(Object.values(expenses)))
+
+    }
+
+    const calcIncome = (list) => {
+        let sum = addCards(cardData.filter(c => c.listId === list._id))
+        list.amount = sum
+        return list
+        //setIncomeData(reduceByName([...incomeData,list]))
+        //setMonthDataIncome({...monthDataIncome, [list.month]:sum})
+
+    }
+    const calcExpenses = (lists) => {
+        var res = []
+        lists.forEach(li => {
+            let sum = addCards(cardData.filter(c => c.listId === li._id))
+            li.amount = sum
+            res.push(li)
+        });
+        return res
+
+
+            //setExpenseData(reduceByName([...expenseData,...Object.values(data)]))
+            //setMonthDataExpense({...monthDataExpense, [month]:sum})
+
         
     }
 
@@ -95,13 +151,12 @@ function Overview({}) {
     }
 
     const reduceByName = (arr) => {
-
         return arr.reduce((acc, d) => {
             const found = acc.find(a => a.name === d.name);
             //const value = { name: d.name, val: d.value };
             if (!found) {
               //acc.push(...value);
-              acc.push({name:d.name, colNum:d.colNum, amount: d.amount}) // not found, so need to add data property
+              acc.push({name:d.name, colNum:d.colNum, amount: d.amount,month:d.month}) // not found, so need to add data property
             }
             else {
               //acc.push({ name: d.name, data: [{ value: d.value }, { count: d.count }] });
@@ -113,20 +168,35 @@ function Overview({}) {
 
     const formatMoney = (a) => {
         if (a)
-        return '$'+a.toFixed(2).toString()    
+        return formatMoneyUS(a)    
         else return '$0'
     }
 
-    const calcExpenseCatTotal = idx => {
+    const calcExpenseCatTotal = (idx,shouldFormat) => {
         let sum = 0
         expenseData.filter(item => item.colNum === idx).forEach(item =>{sum+=item.amount})
-        return formatMoney(sum)
+        if (shouldFormat) return formatMoney(sum)
+        return sum
+        
     }
 
     const calcOverUnder = month => {
         let val = monthDataIncome[month] - monthDataExpense[month]
-        return(<td className={`${val > 0 ? 'bg-success': val < 0 ?'bg-danger': null}`}> {formatMoney(val)}</td>)
+        return(<td className={`${val > 0 ? 'bg-profit': val < 0 ?'bg-loss': null}`}> {formatMoney(val)}</td>)
     }
+
+    const calcTotalMonths = () => {
+        let val = Object.values(monthDataIncome).reduce((partialSum, a) => partialSum + a, 0)-Object.values(monthDataExpense).reduce((partialSum, a) => partialSum + a, 0)
+        return(<td className={`${val > 0 ? 'bg-profit': val < 0 ?'bg-loss': null}`}> {formatMoney(val)}</td>)
+    }
+
+    const pieChartOptions = {
+        //title: "Expenses",
+        is3D: true,
+        legend: "none",
+        pieSliceText: "label",
+
+      };
 
     return(
         <Container fluid className='flex-fill flex-column d-flex min-vh-100'>
@@ -164,7 +234,7 @@ function Overview({}) {
                                     <>
                                     <tr key={idx}>
                                         <th className='bg-light'>{name}</th>
-                                        <th className='bg-light'>{calcExpenseCatTotal(idx)}</th>
+                                        <th className='bg-light'>{calcExpenseCatTotal(idx,true)}</th>
                                     </tr>
                                     {expenseData.filter(item => item.colNum === idx).map((item, idx) => (
                                         <tr key={idx}>
@@ -196,10 +266,30 @@ function Overview({}) {
                                         {calcOverUnder(m)}
                                     </tr>
                                     ))}
+                                    <tr>
+                                    <td>Total</td>
+                                        <td>{formatMoney(Object.values(monthDataIncome).reduce((partialSum, a) => partialSum + a, 0))}</td>
+                                        <td>{formatMoney(Object.values(monthDataExpense).reduce((partialSum, a) => partialSum + a, 0))}</td>
+                                        {calcTotalMonths()}
+                                    </tr>
                                 </tbody>
                             </Table>
                             
-                        </Col>         
+                        </Col>    
+                        <Col md={5}>
+                            <Chart
+                                chartType="PieChart"
+                                data={[["Category","Amount"],["Savings",Object.keys(monthDataIncome).map(m =>(
+                                    monthDataIncome[m]-monthDataExpense[m]
+                                )).reduce((partialSum, a) => partialSum + a, 0)],
+                                ...titleArray.map((d,idx) => (
+                                    [d,calcExpenseCatTotal(idx,false)]
+                                ))]}
+                                options={pieChartOptions}
+                                width={"100%"}
+                                height={"100%"}
+                            />
+                            </Col>     
                     </Row>
                 </div>
                 </Container>

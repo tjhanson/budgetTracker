@@ -6,11 +6,14 @@
   "scripts": {
     "server": "nodemon server.js --ignore client",
     "client": "npm start --prefix client",
-    "dev": "concurrently \"npm run server\" \"npm run client\""
+    "clientElectron": "npm run electron --prefix client",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "devElectron": "concurrently \"npm run server\" \"npm run clientElectron\""
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@silevis/reactgrid": "^4.1.1",
     "bcryptjs": "^2.4.3",
     "concurrently": "^7.3.0",
     "config": "^3.3.9",

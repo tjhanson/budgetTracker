@@ -3,16 +3,29 @@ import { Sidebar, Menu, MenuItem, SubMenu } from 'react-pro-sidebar';
 import {useNavigate } from "react-router-dom";
 import { useSelector,useDispatch } from 'react-redux';
 import { setBoards, setOverview } from '../slices/boardSlice';
+import { Button } from 'react-bootstrap';
+import AddProjectModal from './addProjectModal';
 
 function TaskSidebar({currentYear}) {
     const dispatch = useDispatch()
     let navigate = useNavigate();
+    const userData = useSelector((state) => state.userData)
 
 
     const changeOverview = (y) => {
-        console.log(y)
         dispatch(setOverview(y))
         navigate('/overview')
+        
+    }
+
+    const changeNetWorth= (y) => {
+        dispatch(setOverview(y))
+        navigate('/networth')
+        
+    }
+
+    const addNewProject= (y) => {
+        
         
     }
 
@@ -33,11 +46,18 @@ function TaskSidebar({currentYear}) {
             {years.map((y,idx) =>(
                 <SubMenu defaultOpen={currentYear() === y} label={y} key={idx}>
                     <MenuItem onClick={() =>changeOverview(y)}>Overview</MenuItem>
+                    <MenuItem onClick={() =>changeNetWorth(y)}>Net Worth</MenuItem>
                     {months.map((m,idx) => (
                         <MenuItem key={idx} onClick={() =>changeBoard(m+'_'+y)}> {m}</MenuItem>
                     ))}
                 </SubMenu>
             ))}
+            <SubMenu label='Projects'>
+                {userData.projects.map((p,idx)=>(
+                    <MenuItem key={idx} onClick={() =>changeBoard(p.name)}> {p?.name.split('_')[1]}</MenuItem>
+                ))}
+            <MenuItem ><AddProjectModal /></MenuItem>
+            </SubMenu>
             
         </Menu>
     </Sidebar>

@@ -1,17 +1,13 @@
-import React,{useEffect} from 'react';
-import { Container,Row,Col} from 'react-bootstrap';
-import { useSelector,useDispatch  } from 'react-redux'
-
+import React, {useEffect, useRef} from 'react';
+import { Container,Row,Col,Stack, Navbar} from 'react-bootstrap';
+import { Navigate } from 'react-router-dom';
+import SiteNavbar from '../components/navbar';
 import TaskSidebar from '../components/sidebar';
 import Board from '../components/board';
-import { setProjects } from '../slices/boardSlice';
+import { useSelector  } from 'react-redux'
+import NetWorth from '../components/netWorth/netWorth';
 
-
-function Home() {
-    const dispatch = useDispatch()
-    useEffect(() => {
-        dispatch(setProjects())
-    },[])
+function NetWorthPage() {
 
     function calcCurrentYear(){
         var d = new Date()
@@ -28,7 +24,7 @@ function Home() {
                         <TaskSidebar currentYear={calcCurrentYear}/>
                     </Col>
                     <Col md={10}>
-                        <Board />
+                        <NetWorth />
                     </Col>
                 </Row>
             </Container>
@@ -36,4 +32,4 @@ function Home() {
     )
 }
 
-export default Home;
+export default NetWorthPage;
